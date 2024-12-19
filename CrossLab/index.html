@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Buttons and Checkboxes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            margin-bottom: 40px;
+        }
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="buttons-container">
+    <div class="section-title">Custom Buttons</div>
+    <!-- Buttons will be rendered here -->
+</div>
+
+<div class="container" id="checkboxes-container">
+    <div class="section-title">Custom Checkboxes</div>
+    <!-- Checkboxes will be rendered here -->
+</div>
+
+<script>
+    // Assuming the Button and CheckBox classes are already defined
+    // Here, we test both components
+
+    // Render Custom Buttons
+    function renderButtons() {
+        const container = document.getElementById('buttons-container');
+        const btn1 = new Button({ label: "Primary Button", color: "blue", onClick: () => alert("Button 1 Clicked!") });
+        const btn2 = new Button({ label: "Danger Button", color: "red", onClick: () => alert("Button 2 Clicked!") });
+
+        btn1.render(container);
+        btn2.render(container);
+    }
+
+    // Render Custom Checkboxes
+    function renderCheckBoxes() {
+        const container = document.getElementById('checkboxes-container');
+
+        const child1 = new CheckBox({ label: "Child Checkbox 1" });
+        const child2 = new CheckBox({ label: "Child Checkbox 2" });
+        const child3 = new CheckBox({ label: "Child Checkbox 3" });
+
+        const parent = new CheckBox({
+            label: "Parent Checkbox",
+            children: [child1, child2, child3],
+        });
+
+        parent.render(container);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderButtons();
+        renderCheckBoxes();
+    });
+</script>
+<script>
+    // Код класу Button
+    class Button {
+        constructor({ label = "", color = "gray", onClick = () => {} }) {
+            this.label = label;
+            this.color = color;
+            this.onClick = onClick;
+        }
+
+        render(parent) {
+            const button = document.createElement("button");
+            button.textContent = this.label;
+            button.style.backgroundColor = this.color;
+            button.style.color = "white";
+            button.style.border = "none";
+            button.style.padding = "10px 20px";
+            button.style.margin = "5px";
+            button.style.borderRadius = "5px";
+            button.style.cursor = "pointer";
+            button.addEventListener("click", this.onClick);
+            parent.appendChild(button);
+        }
+    }
+
+    // Код класу CheckBox
+    class CheckBox {
+        constructor({ label = "", checked = false, children = [] } = {}) {
+            this.label = label;
+            this.checked = checked;
+            this.children = children;
+            this.element = null;
+            this.state = "unchecked";
+        }
+
+        render(parent) {
+            const container = document.createElement("div");
+            container.style.display = "flex";
+            container.style.alignItems = "center";
+            container.style.marginBottom = "10px";
+
+            this.element = document.createElement("input");
+            this.element.type = "checkbox";
+            this.element.checked = this.checked;
+
+            const labelElement = document.createElement("label");
+            labelElement.textContent = this.label;
+
+            container.appendChild(this.element);
+            container.appendChild(labelElement);
+            parent.appendChild(container);
+
+            this.element.addEventListener("change", () => {
+                this.checked = this.element.checked;
+                this.updateChildren();
+                this.updateState();
+            });
+
+            if (this.children.length > 0) {
+                const childrenContainer = document.createElement("div");
+                childrenContainer.style.marginLeft = "20px";
+                this.children.forEach((child) => child.render(childrenContainer));
+                parent.appendChild(childrenContainer);
+            }
+
+            this.updateState();
+        }
+
+        updateState() {
+            if (this.children.length === 0) {
+                this.state = this.checked ? "checked" : "unchecked";
+            } else {
+                const allChecked = this.children.every((child) => child.state === "checked");
+                const allUnchecked = this.children.every((child) => child.state === "unchecked");
+
+                if (allChecked) {
+                    this.state = "checked";
+                    this.element.indeterminate = false;
+                    this.element.checked = true;
+                } else if (allUnchecked) {
+                    this.state = "unchecked";
+                    this.element.indeterminate = false;
+                    this.element.checked = false;
+                } else {
+                    this.state = "partially-checked";
+                    this.element.indeterminate = true;
+                }
+            }
+        }
+
+        updateChildren() {
+            if (this.children.length > 0) {
+                this.children.forEach((child) => {
+                    child.checked = this.checked;
+                    child.element.checked = this.checked;
+                    child.updateChildren();
+                    child.updateState();
+                });
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
